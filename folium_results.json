@@ -10,6 +10,8 @@
       "Launch Site": "CCAFS LC-40",
       "sum": 7,
       "count": 26,
+      "Lat": 28.562,
+      "Long": -80.577,
       "failed": 19,
       "rate": 0.269
     },
@@ -17,6 +19,8 @@
       "Launch Site": "CCAFS SLC-40",
       "sum": 3,
       "count": 7,
+      "Lat": 28.563,
+      "Long": -80.577,
       "failed": 4,
       "rate": 0.429
     },
@@ -24,6 +28,8 @@
       "Launch Site": "KSC LC-39A",
       "sum": 10,
       "count": 13,
+      "Lat": 28.573,
+      "Long": -80.647,
       "failed": 3,
       "rate": 0.769
     },
@@ -31,6 +37,8 @@
       "Launch Site": "VAFB SLC-4E",
       "sum": 4,
       "count": 10,
+      "Lat": 34.633,
+      "Long": -120.611,
       "failed": 6,
       "rate": 0.4
     }

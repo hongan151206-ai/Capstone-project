@@ -2,6 +2,7 @@
 Usage: python build_report.py [output.pdf]      (chạy sau run_all.py / sau khi đã chạy 01-08)
 """
 import json
+import sys
 import math
 import os
 import sys
@@ -13,6 +14,7 @@ from reportlab.pdfgen import canvas
 W, H = 960, 540
 NAVY, BLUE, LIGHT, GREY = HexColor("#0B2545"), HexColor("#1F6FB2"), HexColor("#EAF2FA"), HexColor("#6B7785")
 GITHUB = "https://github.com/hongan151206-ai/Capstone-project"
+BLOB = GITHUB + "/blob/main/"
 OUT = sys.argv[1] if len(sys.argv) > 1 else "Data_Science_Capstone_Project_Report.pdf"
 MISSING = []
 
@@ -236,7 +238,7 @@ bullets([
     "Helpers: getBoosterVersion, getLaunchSite, getPayloadData, getCoreData",
     "Missing PayloadMass replaced with the column mean; Falcon 1 launches removed; FlightNumber re-indexed",
     f"Result: dataset_part_1.csv with {f('n')} Falcon 9 launches and 17 columns (Orbit, LaunchSite, Outcome, GridFins, Reused, Legs, ...)",
-    "Code: 01_spacex_api_collection.py",
+    f"GitHub URL: {BLOB}01_spacex_api_collection.py",
 ], y=H - 250, size=14, gap=6)
 
 # 5 Scraping
@@ -249,7 +251,7 @@ bullets([
     "Fields: flight no., launch site, payload, mass, orbit, customer, launch outcome, booster version, landing outcome, date, time",
     "Helpers clean date/time, booster version, landing status and payload mass strings",
     "Output: spacex_web_scraped.csv; used to cross-check the API data",
-    "Code: 02_web_scraping.py",
+    f"GitHub URL: {BLOB}02_web_scraping.py",
 ], y=H - 250, size=14, gap=6)
 
 # 6 Wrangling
@@ -259,7 +261,7 @@ bullets([
     "Counted launches per site, per orbit and each landing outcome (True/False + Ocean, RTLS, ASDS; None = not attempted).",
     "Label: Class = 0 for bad outcomes (False Ocean, False RTLS, False ASDS, None ASDS, None None), otherwise 1.",
     "Feature table: one-hot encoding of Orbit, LaunchSite, LandingPad, Serial -> dataset_part_3.csv.",
-    "Code: 03_data_wrangling.py, 05_eda_visualization.py",
+    f"GitHub URL: {BLOB}03_data_wrangling.py",
 ], width=470, size=13, gap=6)
 if len(df):
     x0 = 540; text(x0, H - 105, "Results on the cleaned data", 15, "Helvetica-Bold", BLUE)
@@ -281,34 +283,39 @@ bullets([
     "Bar chart: success rate per orbit - which orbit types are easiest to land.",
     "Line chart: yearly average success rate - learning curve over time.",
     "Purpose: reveal how each feature relates to landing success, choose features for the models, and spot sparse categories.",
-    "Code: 05_eda_visualization.py",
-], size=18, gap=14)
+    f"GitHub URL: {BLOB}05_eda_visualization.py",
+], size=16, gap=12)
 
 # 8 EDA SQL methodology
 new_slide("EDA with SQL - Queries Performed")
-bullets([
-    "Loaded Spacex.csv into a SQLite table SPACEXTBL and ran 10 queries:",
-    "- Q1-Q2: unique launch sites; 5 records for sites starting with 'CCA'",
-    "- Q3-Q4: total payload for NASA (CRS); average payload for booster F9 v1.1",
-    "- Q5-Q6: first successful ground-pad landing; boosters with drone-ship success and 4000-6000 kg payload",
-    "- Q7-Q8: successful vs failed missions; boosters carrying the maximum payload",
-    "- Q9-Q10: failed drone-ship landings in 2015; ranking of landing outcomes 2010-06-04 to 2017-03-20",
-    "Code: 04_eda_sql.py (results saved as sql_results/q1..q10.csv)",
-], size=18, gap=12)
+text(30, H - 92, "Spacex.csv loaded into SQLite table SPACEXTBL; 10 queries answer the lab questions (results on the next slides):", 12, width=W - 60)
+try:
+    import importlib
+    sys.path.insert(0, ".")
+    QRY = importlib.import_module("04_eda_sql").QUERIES
+except Exception:
+    QRY = {}
+ycol = [H - 120, H - 120]
+for idx, (ttl, q) in enumerate(QRY.items()):
+    col = idx // 5; x = 30 + col * 470
+    ycol[col] = text(x, ycol[col], ttl, 11, "Helvetica-Bold", BLUE)
+    ycol[col] = text(x, ycol[col] - 1, q, 9.5, "Courier", black, width=440) - 9
+text(30, 40, f"GitHub URL: {BLOB}04_eda_sql.py", 12, color=BLUE)
 
 # 9 Interactive analytics methodology
 new_slide("Interactive Visual Analytics - Folium and Plotly Dash")
-text(40, H - 105, "Folium map (06_folium_map.py)", 17, "Helvetica-Bold", BLUE)
+text(40, H - 100, "Folium map", 17, "Helvetica-Bold", BLUE)
 y = bullets([
-    "Circle + label for each launch site; marker clusters coloured green (success) / red (failure).",
-    "MousePosition to pick coordinates; PolyLines with distance (haversine) to coastline, railway, highway and nearest city.",
-], y=H - 135, size=14, gap=5)
-text(40, y - 4, "Plotly Dash app (07_dash_app.py)", 17, "Helvetica-Bold", BLUE)
-y = bullets([
+    "Circle + label for each launch site; marker clusters coloured green (success) / red (failure) for every launch record.",
+    "MousePosition to pick coordinates; PolyLines with haversine distance to coastline, railway, highway and nearest city.",
+    f"GitHub URL: {BLOB}06_folium_map.py",
+], y=H - 128, size=14, gap=5)
+text(40, y - 6, "Plotly Dash app", 17, "Helvetica-Bold", BLUE)
+bullets([
     "Dropdown (all sites or one site) drives a pie chart of successful launches / success vs failure.",
     "Range slider filters payload mass; scatter plot of payload vs outcome coloured by booster version category.",
+    f"GitHub URL: {BLOB}07_dash_app.py",
 ], y=y - 34, size=14, gap=5)
-text(40, y - 6, f"GitHub (Folium + Dash code): {GITHUB}", 12, color=BLUE)
 
 # 10 Predictive method
 new_slide("Predictive Analysis (Classification) - Methodology")
@@ -318,42 +325,51 @@ bullets([
     "Models: Logistic Regression, Support Vector Machine, Decision Tree, K-Nearest Neighbours.",
     "Tuning: GridSearchCV with 10-fold cross-validation (C/penalty; kernel/C/gamma; criterion/depth/leaf; n_neighbors/algorithm/p).",
     "Evaluation: test accuracy, precision, recall, F1 and confusion matrix; best model chosen on test accuracy (ties -> CV accuracy).",
-    "Code: 08_predictive_analysis.py",
+    f"GitHub URL: {BLOB}08_predictive_analysis.py",
 ], size=18, gap=14)
 
-# 11-13 EDA visualization results
-new_slide("EDA Results - Scatter Plots (Flight Number, Payload, Site)")
-picture("viz_flight_payload.png", 30, 100, 440, 320); picture("viz_flight_site.png", 490, 100, 440, 320)
-caption(f"Success rate is {pct(f('early', 0))} for flights 1-{f('med')} and {pct(f('late', 0))} after that. "
-        f"Payloads under 5000 kg land {pct(f('pay_low', 0))} of the time vs {pct(f('pay_high', 0))} for heavier loads. "
-        f"Best site: {f('site_best')}.", y=84)
+# 11-14 EDA visualization results
+def imgslide(title, imgs, items):
+    new_slide(title)
+    picture(imgs[0], 30, 190, 440, 235); picture(imgs[1], 490, 190, 440, 235)
+    bullets(items, y=168, size=12, gap=3)
 
-new_slide("EDA Results - Payload by Site and Orbit")
-picture("viz_payload_site.png", 30, 100, 440, 320); picture("viz_payload_orbit.png", 490, 100, 440, 320)
-caption(f"Payloads under 5000 kg: {pct(f('pay_low', 0))} success; 5000 kg and above: {pct(f('pay_high', 0))}. "
-        f"Best site by success rate: {f('site_best')}; weakest: {f('site_worst')}.", y=84)
 
-new_slide("EDA Results - Orbit Analysis")
-picture("viz_flight_orbit.png", 30, 100, 440, 320); picture("viz_success_by_orbit.png", 490, 100, 440, 320)
-try:
+if len(df):
+    first_site = df.groupby("LaunchSite")["FlightNumber"].min()
+    heavy = df[df["PayloadMass"] >= 9000]
+    mp_site = df.groupby("LaunchSite")["PayloadMass"].mean()
+    mp_orb = df.groupby("Orbit")["PayloadMass"].mean().sort_values(ascending=False).head(3)
+    trend = "higher" if f("late", 0) > f("early", 0) else "lower"
+    imgslide("EDA Results - Scatter Plots (Flight Number, Payload, Site)", ["viz_flight_payload.png", "viz_flight_site.png"], [
+        f"Flights 1-{f('med')} succeed {pct(f('early', 0))} of the time; later flights {pct(f('late', 0))} ({trend} with experience).",
+        f"Payloads under 5000 kg land {pct(f('pay_low', 0))}; 5000 kg and above {pct(f('pay_high', 0))}; payloads of 9000 kg or more: "
+        f"{pct(heavy['Class'].mean()) if len(heavy) else 'n/a'} ({len(heavy)} launches).",
+        "First flight number per site: " + ", ".join(f"{k} #{v}" for k, v in first_site.items()) + ".",
+        f"Launches per site: " + ", ".join(f"{k} {v}" for k, v in F["site_counts"].items()) + f"; best success rate at {f('site_best')}.",
+    ])
+    imgslide("EDA Results - Payload by Site and Orbit", ["viz_payload_site.png", "viz_payload_orbit.png"], [
+        "Average payload per site: " + ", ".join(f"{k} {v:,.0f} kg" for k, v in mp_site.items()) + ".",
+        "Orbits with the heaviest average payloads: " + ", ".join(f"{k} {v:,.0f} kg" for k, v in mp_orb.items()) + ".",
+        "Success by site: " + ", ".join(f"{k} {pct(r['mean'])} ({int(r['count'])})" for k, r in F["site"].iterrows()) + ".",
+        f"Weakest site: {f('site_worst')}; strongest: {f('site_best')}.",
+    ])
     o = F["orb"]
-    caption("Orbits with 100% success have very few launches (" + ", ".join(f"{k}: {int(r['count'])}" for k, r in o[o["mean"] == 1].iterrows()) +
-            f"); among orbits with at least 8 launches the best is {f('orb_best_big')} and the weakest is {f('orb_worst_big')}.", y=84)
-except Exception:
-    pass
+    imgslide("EDA Results - Orbit Analysis", ["viz_flight_orbit.png", "viz_success_by_orbit.png"], [
+        "Success rate by orbit (launches): " + ", ".join(f"{k} {pct(r['mean'])} ({int(r['count'])})" for k, r in o.iterrows()) + ".",
+        "Orbits with 100% success have very few launches (" + ", ".join(f"{k}: {int(r['count'])}" for k, r in o[o["mean"] == 1].iterrows()) + ").",
+        f"Among orbits with at least 8 launches the best is {f('orb_best_big')} and the weakest is {f('orb_worst_big')}.",
+    ])
 
-new_slide("EDA Results - Yearly Trend")
-picture("viz_yearly_trend.png", 30, 80, 560, 350)
-try:
+    new_slide("EDA Results - Yearly Trend")
+    picture("viz_yearly_trend.png", 30, 80, 560, 350)
     yr_ = df.groupby("Year")["Class"].agg(["mean", "count"])
     text(620, H - 105, "Success rate by year (launches)", 13, "Helvetica-Bold", BLUE)
     yy = H - 128
     for k, r in yr_.iterrows():
         yy = text(620, yy, f"{k}:  {pct(r['mean'])}   ({int(r['count'])})", 12) - 2
-except Exception:
-    pass
-caption(f"Success rate moved from {pct(f('yr_first', (0, 0))[1])} ({f('yr_first', ('', 0))[0]}) to {pct(f('yr_last', (0, 0))[1])} "
-        f"({f('yr_last', ('', 0))[0]}), peaking at {pct(f('yr_peak', (0, 0))[1])} in {f('yr_peak', ('', 0))[0]}.", y=60)
+    caption(f"Success rate moved from {pct(f('yr_first', (0, 0))[1])} ({f('yr_first', ('', 0))[0]}) to {pct(f('yr_last', (0, 0))[1])} "
+            f"({f('yr_last', ('', 0))[0]}), peaking at {pct(f('yr_peak', (0, 0))[1])} in {f('yr_peak', ('', 0))[0]}.", y=60)
 
 # 14-16 SQL results
 new_slide("EDA with SQL - Launch Sites and Payloads (Q1-Q4)")
@@ -376,33 +392,54 @@ try:
 except Exception:
     pass
 
-# 17-18 Folium
+# 17-20 Folium and Dash
 new_slide("Folium Map - Launch Sites and Launch Records")
-picture("folium_sites.png", 30, 100, 440, 320); picture("folium_clusters.png", 490, 100, 440, 320)
+picture("folium_sites.png", 30, 190, 440, 235); picture("folium_clusters.png", 490, 190, 440, 235)
+items = []
 try:
     st = pd.DataFrame(FOL["site_stats"])
-    caption("Launch sites: " + "; ".join(f"{r['Launch Site']} {int(r['sum'])}/{int(r['count'])} ({pct(r['rate'])})" for _, r in st.iterrows()) +
-            ". Sites are on the US coasts (Florida, California); clusters are coloured green/red per launch.", y=84)
+    items += [f"{r['Launch Site']} ({r['Lat']:.2f}, {r['Long']:.2f}): {int(r['sum'])} successes of {int(r['count'])} launch records ({pct(r['rate'])})."
+              for _, r in st.iterrows()]
 except Exception:
     pass
+items += ["Map elements: circle + label per launch site; marker cluster of all launch records, green = success, red = failure.",
+          "All sites are on the US coasts (Florida and California); the Florida sites are at lower latitude than VAFB SLC-4E."]
+bullets(items, y=168, size=12, gap=3)
 
 new_slide("Folium Map - Proximity Analysis")
-picture("folium_proximity.png", 30, 90, 540, 340)
+picture("folium_proximity.png", 30, 150, 520, 280)
 d = FOL.get("distances_km", {})
-bullets([f"{k}: {v:.2f} km" for k, v in d.items()] +
-        ["Close to coast, railway and highway: easy transport of rocket parts and safe launches over the ocean.",
-         "Far from cities: limits risk to the population."], x=590, y=H - 120, width=340, size=13)
+bullets([f"Distance from CCAFS SLC-40 to {k.lower()}: {v:.2f} km" for k, v in d.items()] +
+        ["Method: points picked with MousePosition; distance computed with the haversine formula; PolyLine drawn to each point.",
+         "The site is close to coast, railway and highway: easy transport of rocket parts and launches over the ocean.",
+         "It is far from cities, which limits risk to the population."], x=570, y=H - 120, width=360, size=12, gap=4)
+caption("Proximity analysis answers: are launch sites near railways, highways, coastlines? Do they keep a distance from cities? (see 06_folium_map.py)", y=80)
 
-# 19-20 Dash
 new_slide("Plotly Dash - Success Pie Charts")
-picture("dash_pie_all.png", 30, 100, 440, 320); picture("dash_pie_site.png", 490, 100, 440, 320)
-caption(f"{DSH.get('site_most_successes', 'n/a')} accounts for the largest share of successful launches; "
-        f"{DSH.get('site_best_rate', 'n/a')} has the best success ratio (right pie).", y=84)
+picture("dash_pie_all.png", 30, 190, 440, 235); picture("dash_pie_site.png", 490, 190, 440, 235)
+items = []
+try:
+    tab = pd.DataFrame(DSH["site_table"]); tot = tab["sum"].sum()
+    items += [f"{r['Launch Site']}: {int(r['sum'])} successful launches ({pct(r['sum'] / tot)} of all successes), success ratio {pct(r['rate'])} ({int(r['count'])} launches)."
+              for _, r in tab.iterrows()]
+except Exception:
+    pass
+items += [f"{DSH.get('site_most_successes', 'n/a')} has the most successful launches; {DSH.get('site_best_rate', 'n/a')} has the best success ratio (right pie).",
+          "Dropdown: 'All sites' shows each site's share of successes; selecting one site shows its success vs failure split."]
+bullets(items, y=168, size=12, gap=3)
 
 new_slide("Plotly Dash - Payload vs Launch Outcome")
-picture("dash_scatter_all.png", 30, 100, 440, 320); picture("dash_scatter_range.png", 490, 100, 440, 320)
-caption(f"Success rate is {pct(DSH.get('rate_payload_lt5000', 0))} for payloads under 5000 kg vs {pct(DSH.get('rate_payload_ge5000', 0))} above; "
-        "by booster version: " + ", ".join(f"{k} {pct(v)}" for k, v in DSH.get("rate_by_booster_category", {}).items()) + ".", y=84)
+picture("dash_scatter_all.png", 30, 190, 440, 235); picture("dash_scatter_range.png", 490, 190, 440, 235)
+items = []
+try:
+    items.append("Success rate by payload range (kg): " + ", ".join(f"{k} {pct(v[0])} ({v[1]})" for k, v in DSH["rate_by_payload_bin"].items()) + ".")
+    items.append("Success rate by booster version category (launches): " + ", ".join(
+        f"{k} {pct(v)} ({DSH['booster_category_counts'].get(k, '?')})" for k, v in DSH["rate_by_booster_category"].items()) + ".")
+except Exception:
+    pass
+items += [f"Payloads under 5000 kg: {pct(DSH.get('rate_payload_lt5000', 0))} success; 5000 kg and above: {pct(DSH.get('rate_payload_ge5000', 0))}.",
+          "Range slider (right chart shows 2000-6000 kg) filters the points; colours show booster version categories."]
+bullets(items, y=168, size=12, gap=3)
 
 # 21-22 Predictive results
 new_slide("Predictive Analysis Results - Model Comparison")

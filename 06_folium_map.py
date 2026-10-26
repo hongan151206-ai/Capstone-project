@@ -32,6 +32,7 @@ def main():
     df = pd.read_csv(URL)[["Launch Site", "Lat", "Long", "class"]]
     sites = df.groupby("Launch Site", as_index=False).first()[["Launch Site", "Lat", "Long"]]
     stats = df.groupby("Launch Site")["class"].agg(["sum", "count"]).reset_index()
+    stats = stats.merge(sites, on="Launch Site")
     stats["failed"] = stats["count"] - stats["sum"]
     stats["rate"] = stats["sum"] / stats["count"]
 

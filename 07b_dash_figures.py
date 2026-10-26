@@ -45,10 +45,16 @@ def main():
     low = df[df["Payload Mass (kg)"] < 5000]["class"].mean()
     high = df[df["Payload Mass (kg)"] >= 5000]["class"].mean()
     cat_rate = df.groupby("Booster Version Category")["class"].mean().round(3).to_dict()
+    cat_n = df["Booster Version Category"].value_counts().to_dict()
+    bins = pd.cut(df["Payload Mass (kg)"], [-1, 2000, 4000, 6000, 8000, 20000],
+                  labels=["0-2000", "2000-4000", "4000-6000", "6000-8000", ">8000"])
+    pb = df.groupby(bins, observed=True)["class"].agg(["mean", "count"])
+    payload_bins = {str(k): [round(float(r["mean"]), 3), int(r["count"])] for k, r in pb.iterrows()}
     json.dump({"site_most_successes": best_share, "site_best_rate": best_rate,
                "site_table": by_site.round(3).reset_index().to_dict("records"),
                "range_slider": [lo, hi], "rate_payload_lt5000": round(low, 3),
-               "rate_payload_ge5000": round(high, 3), "rate_by_booster_category": cat_rate},
+               "rate_payload_ge5000": round(high, 3), "rate_by_booster_category": cat_rate,
+               "booster_category_counts": cat_n, "rate_by_payload_bin": payload_bins},
               open("dash_results.json", "w"), indent=2)
     print(by_site)
 
