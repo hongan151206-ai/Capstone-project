@@ -10,7 +10,7 @@ URL = ("https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/"
 
 
 def cat(x, y, hue, fname, xl, yl):
-    g = sns.catplot(y=y, x=x, hue=hue, data=df, aspect=3)
+    g = sns.catplot(y=y, x=x, hue=hue, data=df, aspect=1.6, height=5)
     g.set_axis_labels(xl, yl)
     g.savefig(fname, dpi=150); plt.close("all")
 

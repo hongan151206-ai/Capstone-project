@@ -26,7 +26,7 @@ QUERIES = {
         "(SELECT MAX(PAYLOAD_MASS__KG_) FROM SPACEXTBL)",
     "Q9 2015 failed drone-ship landings (month, booster, site)":
         "SELECT substr(Date,6,2) AS month, Booster_Version, Launch_Site FROM SPACEXTBL "
-        "WHERE Landing_Outcome = 'Failure (drone ship)' AND substr(Date,0,5) = '2015'",
+        "WHERE Landing_Outcome = 'Failure (drone ship)' AND substr(Date,1,4) = '2015'",
     "Q10 Rank landing outcomes 2010-06-04..2017-03-20":
         "SELECT Landing_Outcome, COUNT(*) AS n FROM SPACEXTBL "
         "WHERE Date BETWEEN '2010-06-04' AND '2017-03-20' "
@@ -34,19 +34,45 @@ QUERIES = {
 }
 
 
+def table_png(df, title, fname):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    d = df.head(12).copy()
+    for col in d.columns:
+        if d[col].dtype.kind == "f":
+            d[col] = d[col].round(1)
+    d = d.astype(str)
+    fig, ax = plt.subplots(figsize=(9, 0.45 * (len(d) + 2) + 0.4))
+    ax.axis("off"); ax.set_title(title, fontsize=11, loc="left")
+    t = ax.table(cellText=d.values, colLabels=list(d.columns), loc="center", cellLoc="left")
+    t.auto_set_font_size(False); t.set_fontsize(10); t.scale(1, 1.5); t.auto_set_column_width(list(range(len(d.columns))))
+    fig.savefig(fname, dpi=150, bbox_inches="tight"); plt.close(fig)
+
+
+def fix_date(s):
+    s = s.astype(str)
+    iso = s.str.match(r"^\d{4}-")
+    return pd.to_datetime(s, dayfirst=not iso.all(), errors="coerce").dt.strftime("%Y-%m-%d")
+
+
 def main():
+    import os
+    os.makedirs("sql_results", exist_ok=True)
     df = pd.read_csv(URL)
     df.columns = [c.strip() for c in df.columns]
-    # chuẩn hoá tên cột cho SQL
-    df = df.rename(columns={"Time (UTC)": "Time_UTC", "PAYLOAD_MASS__KG_": "PAYLOAD_MASS__KG_"})
-    df["Date"] = pd.to_datetime(df["Date"]).dt.strftime("%Y-%m-%d")
+    df = df.rename(columns={"Time (UTC)": "Time_UTC"})
+    df["Date"] = fix_date(df["Date"])
 
     con = sqlite3.connect("my_data1.db")
     df.to_sql("SPACEXTBL", con, if_exists="replace", index=False)
 
-    for title, q in QUERIES.items():
+    for i, (title, q) in enumerate(QUERIES.items(), 1):
+        res = pd.read_sql_query(q, con)
         print(f"\n=== {title} ===")
-        print(pd.read_sql_query(q, con).to_string(index=False))
+        print(res.to_string(index=False))
+        res.to_csv(f"sql_results/q{i}.csv", index=False)
+        table_png(res, title, f"sql_q{i}.png")
     con.close()
 
 
