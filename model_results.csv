@@ -1,0 +1,5 @@
+Model,CV accuracy,Test accuracy,Precision,Recall,F1,Best params
+SVM,0.8482,0.8333,0.8,1.0,0.8889,"{'C': 1.0, 'gamma': 0.03162277660168379, 'kernel': 'sigmoid'}"
+Logistic Regression,0.8214,0.8333,0.8,1.0,0.8889,"{'C': 0.1, 'penalty': 'l2', 'solver': 'lbfgs'}"
+Decision Tree,0.8357,0.7778,0.9,0.75,0.8182,"{'criterion': 'gini', 'max_depth': 6, 'max_features': 'sqrt', 'min_samples_leaf': 2, 'min_samples_split': 5, 'splitter': 'random'}"
+KNN,0.8339,0.7778,0.75,1.0,0.8571,"{'algorithm': 'auto', 'n_neighbors': 3, 'p': 1}"

@@ -1,0 +1,64 @@
+{
+  "best_model": "SVM",
+  "best_test_accuracy": 0.8333,
+  "best_params": {
+    "C": 1.0,
+    "gamma": 0.03162277660168379,
+    "kernel": "sigmoid"
+  },
+  "n_test": 18,
+  "n_train": 72,
+  "table": [
+    {
+      "Model": "SVM",
+      "CV accuracy": 0.8482,
+      "Test accuracy": 0.8333,
+      "Precision": 0.8,
+      "Recall": 1.0,
+      "F1": 0.8889
+    },
+    {
+      "Model": "Logistic Regression",
+      "CV accuracy": 0.8214,
+      "Test accuracy": 0.8333,
+      "Precision": 0.8,
+      "Recall": 1.0,
+      "F1": 0.8889
+    },
+    {
+      "Model": "Decision Tree",
+      "CV accuracy": 0.8357,
+      "Test accuracy": 0.7778,
+      "Precision": 0.9,
+      "Recall": 0.75,
+      "F1": 0.8182
+    },
+    {
+      "Model": "KNN",
+      "CV accuracy": 0.8339,
+      "Test accuracy": 0.7778,
+      "Precision": 0.75,
+      "Recall": 1.0,
+      "F1": 0.8571
+    }
+  ],
+  "confusion_best": {
+    "TN": 3,
+    "FP": 3,
+    "FN": 0,
+    "TP": 12
+  },
+  "top_features": {
+    "Legs": 0.417,
+    "GridFins": 0.375,
+    "Serial_B1050": -0.279,
+    "ReusedCount": 0.254,
+    "Serial_B1017": -0.25,
+    "Serial_B1028": -0.232
+  },
+  "expected_cost_musd": 94.8,
+  "cost_assumption": [
+    62.0,
+    165.0
+  ]
+}

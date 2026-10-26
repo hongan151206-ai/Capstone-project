@@ -12,6 +12,9 @@ URL = ("https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/"
 def cat(x, y, hue, fname, xl, yl):
     g = sns.catplot(y=y, x=x, hue=hue, data=df, aspect=1.6, height=5)
     g.set_axis_labels(xl, yl)
+    if x == "FlightNumber" and g.ax.get_xticklabels() and g.ax.get_xticklabels()[0].get_text():
+        for i, lab in enumerate(g.ax.get_xticklabels()):
+            lab.set_visible(i % 10 == 0)
     g.savefig(fname, dpi=150); plt.close("all")
 
 

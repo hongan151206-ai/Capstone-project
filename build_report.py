@@ -146,6 +146,48 @@ def caption(s, y=58):
     text(40, y, s, 13, "Helvetica-Oblique", NAVY, width=W - 80)
 
 
+def sqlbox(i, x, y, w, h):
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    d = SQL.get(i)
+    titles = {1: "Q1 Unique launch sites", 2: "Q2 Records for sites starting with 'CCA'", 3: "Q3 Total payload mass, NASA (CRS)",
+              4: "Q4 Average payload mass, booster F9 v1.1", 5: "Q5 First successful ground-pad landing",
+              6: "Q6 Drone-ship success, payload 4000-6000 kg", 7: "Q7 Successful vs failed missions",
+              8: "Q8 Boosters carrying the maximum payload", 9: "Q9 2015 failed drone-ship landings",
+              10: "Q10 Landing outcomes ranked, 2010-06-04 to 2017-03-20"}
+    text(x, y + h - 12, titles[i], 11, "Helvetica-Bold", BLUE)
+    if d is None or not len(d):
+        return
+    if i == 2:
+        d = d[["Date", "Booster_Version", "Launch_Site", "Customer", "Landing_Outcome"]]
+    d = d.copy()
+    for col in d.columns:
+        if d[col].dtype.kind == "f":
+            d[col] = d[col].map(lambda v: f"{v:,.1f}")
+    rows = d.astype(str).values.tolist(); cols = list(d.columns)
+    maxrows = int((h - 30) // 14)
+    more = len(rows) - maxrows
+    rows = rows[:maxrows]
+    fs = 9
+    widths = [max([stringWidth(str(v), "Helvetica", fs) for v in [cols[k]] + [r[k] for r in rows]]) + 14 for k in range(len(cols))]
+    scale = min(1, w / sum(widths)); widths = [wd * scale for wd in widths]
+    yy = y + h - 30
+    c.setFillColor(LIGHT); c.rect(x, yy - 3, sum(widths), 14, fill=1, stroke=0)
+    xx = x
+    for k, col in enumerate(cols):
+        c.setFillColor(NAVY); c.setFont("Helvetica-Bold", fs); c.drawString(xx + 3, yy, col[:int(widths[k] / 5)]); xx += widths[k]
+    for r in rows:
+        yy -= 14; xx = x
+        for k, v in enumerate(r):
+            v = v.strip(); lim = v
+            while stringWidth(lim, "Helvetica", fs) > widths[k] - 6 and len(lim) > 3:
+                lim = lim[:-2]
+            if lim != v:
+                lim = lim.rstrip() + ".."
+            c.setFillColor(black); c.setFont("Helvetica", fs); c.drawString(xx + 3, yy, lim); xx += widths[k]
+    if more > 0:
+        text(x, yy - 14, f"... +{more} more rows (see sql_results/q{i}.csv)", 8, "Helvetica-Oblique", GREY)
+
+
 # ============================================================================= SLIDES
 # 1 Title
 new_slide("Data Science Capstone Project Report")
@@ -240,7 +282,7 @@ bullets([
     "Line chart: yearly average success rate - learning curve over time.",
     "Purpose: reveal how each feature relates to landing success, choose features for the models, and spot sparse categories.",
     "Code: 05_eda_visualization.py",
-], size=15, gap=9)
+], size=18, gap=14)
 
 # 8 EDA SQL methodology
 new_slide("EDA with SQL - Queries Performed")
@@ -252,7 +294,7 @@ bullets([
     "- Q7-Q8: successful vs failed missions; boosters carrying the maximum payload",
     "- Q9-Q10: failed drone-ship landings in 2015; ranking of landing outcomes 2010-06-04 to 2017-03-20",
     "Code: 04_eda_sql.py (results saved as sql_results/q1..q10.csv)",
-], size=15, gap=7)
+], size=18, gap=12)
 
 # 9 Interactive analytics methodology
 new_slide("Interactive Visual Analytics - Folium and Plotly Dash")
@@ -277,7 +319,7 @@ bullets([
     "Tuning: GridSearchCV with 10-fold cross-validation (C/penalty; kernel/C/gamma; criterion/depth/leaf; n_neighbors/algorithm/p).",
     "Evaluation: test accuracy, precision, recall, F1 and confusion matrix; best model chosen on test accuracy (ties -> CV accuracy).",
     "Code: 08_predictive_analysis.py",
-], size=15, gap=9)
+], size=18, gap=14)
 
 # 11-13 EDA visualization results
 new_slide("EDA Results - Scatter Plots (Flight Number, Payload, Site)")
@@ -286,8 +328,13 @@ caption(f"Success rate is {pct(f('early', 0))} for flights 1-{f('med')} and {pct
         f"Payloads under 5000 kg land {pct(f('pay_low', 0))} of the time vs {pct(f('pay_high', 0))} for heavier loads. "
         f"Best site: {f('site_best')}.", y=84)
 
-new_slide("EDA Results - Orbit and Payload")
-picture("viz_payload_site.png", 30, 100, 300, 320); picture("viz_payload_orbit.png", 330, 100, 300, 320); picture("viz_flight_orbit.png", 630, 100, 300, 320)
+new_slide("EDA Results - Payload by Site and Orbit")
+picture("viz_payload_site.png", 30, 100, 440, 320); picture("viz_payload_orbit.png", 490, 100, 440, 320)
+caption(f"Payloads under 5000 kg: {pct(f('pay_low', 0))} success; 5000 kg and above: {pct(f('pay_high', 0))}. "
+        f"Best site by success rate: {f('site_best')}; weakest: {f('site_worst')}.", y=84)
+
+new_slide("EDA Results - Orbit Analysis")
+picture("viz_flight_orbit.png", 30, 100, 440, 320); picture("viz_success_by_orbit.png", 490, 100, 440, 320)
 try:
     o = F["orb"]
     caption("Orbits with 100% success have very few launches (" + ", ".join(f"{k}: {int(r['count'])}" for k, r in o[o["mean"] == 1].iterrows()) +
@@ -295,25 +342,33 @@ try:
 except Exception:
     pass
 
-new_slide("EDA Results - Success Rate by Orbit and Yearly Trend")
-picture("viz_success_by_orbit.png", 30, 100, 440, 320); picture("viz_yearly_trend.png", 490, 100, 440, 320)
+new_slide("EDA Results - Yearly Trend")
+picture("viz_yearly_trend.png", 30, 80, 560, 350)
+try:
+    yr_ = df.groupby("Year")["Class"].agg(["mean", "count"])
+    text(620, H - 105, "Success rate by year (launches)", 13, "Helvetica-Bold", BLUE)
+    yy = H - 128
+    for k, r in yr_.iterrows():
+        yy = text(620, yy, f"{k}:  {pct(r['mean'])}   ({int(r['count'])})", 12) - 2
+except Exception:
+    pass
 caption(f"Success rate moved from {pct(f('yr_first', (0, 0))[1])} ({f('yr_first', ('', 0))[0]}) to {pct(f('yr_last', (0, 0))[1])} "
-        f"({f('yr_last', ('', 0))[0]}), peaking at {pct(f('yr_peak', (0, 0))[1])} in {f('yr_peak', ('', 0))[0]}.", y=84)
+        f"({f('yr_last', ('', 0))[0]}), peaking at {pct(f('yr_peak', (0, 0))[1])} in {f('yr_peak', ('', 0))[0]}.", y=60)
 
 # 14-16 SQL results
 new_slide("EDA with SQL - Launch Sites and Payloads (Q1-Q4)")
-picture("sql_q1.png", 30, 255, 440, 170); picture("sql_q2.png", 490, 255, 440, 170)
-picture("sql_q3.png", 30, 90, 440, 150); picture("sql_q4.png", 490, 90, 440, 150)
+sqlbox(1, 30, 255, 440, 170); sqlbox(2, 490, 255, 440, 170)
+sqlbox(3, 30, 90, 440, 150); sqlbox(4, 490, 90, 440, 150)
 caption(f"NASA (CRS) carried {first(3)} kg in total; boosters F9 v1.1 averaged {first(4)} kg per launch.", y=64)
 
 new_slide("EDA with SQL - Landing Success and Mission Outcomes (Q5-Q8)")
-picture("sql_q5.png", 30, 255, 440, 170); picture("sql_q6.png", 490, 255, 440, 170)
-picture("sql_q7.png", 30, 90, 440, 150); picture("sql_q8.png", 490, 90, 440, 150)
+sqlbox(5, 30, 255, 440, 170); sqlbox(6, 490, 255, 440, 170)
+sqlbox(7, 30, 90, 440, 150); sqlbox(8, 490, 90, 440, 150)
 caption(f"First successful ground-pad landing: {first(5)}. Boosters that landed on a drone ship with 4000-6000 kg payloads and the "
         f"boosters that carried the maximum payload are listed above.", y=64)
 
 new_slide("EDA with SQL - Rankings and Time Analysis (Q9-Q10)")
-picture("sql_q9.png", 30, 255, 440, 170); picture("sql_q10.png", 490, 215, 440, 210)
+sqlbox(9, 30, 255, 440, 170); sqlbox(10, 490, 215, 440, 210)
 try:
     top = SQL[10].iloc[0]
     caption(f"Most frequent outcome between 2010-06-04 and 2017-03-20: '{top.iloc[0]}' ({top.iloc[1]} launches). "

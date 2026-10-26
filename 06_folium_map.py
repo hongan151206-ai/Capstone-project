@@ -65,8 +65,8 @@ def main():
     # ---------- Static figures for the report ----------
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.scatter(sites["Long"], sites["Lat"], s=120, color="#d35400")
-    for _, r in sites.iterrows():
-        ax.annotate(r["Launch Site"], (r["Long"], r["Lat"]), textcoords="offset points", xytext=(6, 6), fontsize=8)
+    for k, (_, r) in enumerate(sites.iterrows()):
+        ax.annotate(r["Launch Site"], (r["Long"], r["Lat"]), textcoords="offset points", xytext=(-90 if r["Long"] > -100 else 8, 8 + 12 * k), fontsize=8)
     ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude"); ax.set_title("SpaceX launch sites"); ax.grid(alpha=.3)
     fig.tight_layout(); fig.savefig("folium_sites.png", dpi=150); plt.close(fig)
 

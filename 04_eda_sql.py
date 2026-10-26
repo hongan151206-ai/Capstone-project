@@ -60,7 +60,7 @@ def main():
     import os
     os.makedirs("sql_results", exist_ok=True)
     df = pd.read_csv(URL)
-    df.columns = [c.strip() for c in df.columns]
+    df.columns = [c.strip().replace(" _", "_") for c in df.columns]
     df = df.rename(columns={"Time (UTC)": "Time_UTC"})
     df["Date"] = fix_date(df["Date"])
 

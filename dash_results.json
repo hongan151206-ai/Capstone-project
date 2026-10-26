@@ -1,0 +1,43 @@
+{
+  "site_most_successes": "KSC LC-39A",
+  "site_best_rate": "KSC LC-39A",
+  "site_table": [
+    {
+      "Launch Site": "CCAFS LC-40",
+      "sum": 7,
+      "count": 26,
+      "rate": 0.269
+    },
+    {
+      "Launch Site": "CCAFS SLC-40",
+      "sum": 3,
+      "count": 7,
+      "rate": 0.429
+    },
+    {
+      "Launch Site": "KSC LC-39A",
+      "sum": 10,
+      "count": 13,
+      "rate": 0.769
+    },
+    {
+      "Launch Site": "VAFB SLC-4E",
+      "sum": 4,
+      "count": 10,
+      "rate": 0.4
+    }
+  ],
+  "range_slider": [
+    2000,
+    6000
+  ],
+  "rate_payload_lt5000": 0.452,
+  "rate_payload_ge5000": 0.357,
+  "rate_by_booster_category": {
+    "B4": 0.545,
+    "B5": 1.0,
+    "FT": 0.667,
+    "v1.0": 0.0,
+    "v1.1": 0.067
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "distances_km": {
+    "Coastline": 0.87,
+    "Railway": 1.29,
+    "Highway": 0.61,
+    "City (Melbourne)": 51.43
+  },
+  "site_stats": [
+    {
+      "Launch Site": "CCAFS LC-40",
+      "sum": 7,
+      "count": 26,
+      "failed": 19,
+      "rate": 0.269
+    },
+    {
+      "Launch Site": "CCAFS SLC-40",
+      "sum": 3,
+      "count": 7,
+      "failed": 4,
+      "rate": 0.429
+    },
+    {
+      "Launch Site": "KSC LC-39A",
+      "sum": 10,
+      "count": 13,
+      "failed": 3,
+      "rate": 0.769
+    },
+    {
+      "Launch Site": "VAFB SLC-4E",
+      "sum": 4,
+      "count": 10,
+      "failed": 6,
+      "rate": 0.4
+    }
+  ]
+}
